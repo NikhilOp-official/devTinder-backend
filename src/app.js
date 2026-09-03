@@ -12,7 +12,7 @@ app.use(
   cors({
     credentials: true,
     origin: "http://localhost:5173",
-  })
+  }),
 );
 app.use(express.json()); //this will be used as the  middleware which will convert all  the requested json data to javascript object
 app.use(cookieParser());
@@ -29,6 +29,6 @@ connectDB()
       console.log("Server started successfully on port 7777.....");
     });
   })
-  .catch(() => {
+  .catch((e) => {
     console.log("An error occured while connecting  to the databse");
   });
