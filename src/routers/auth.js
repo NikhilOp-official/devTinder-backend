@@ -47,7 +47,7 @@ authRouter.post("/login", async (req, res) => {
       throw new Error("User does not exist");
     } else {
       const isDecrypted = await user.validatePassword(password);
-      console.log({ isDecrypted });
+      // console.log({ isDecrypted });
 
       if (isDecrypted) {
         // create a JWT token

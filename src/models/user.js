@@ -63,16 +63,15 @@ const userSchema = mongoose.Schema(
   },
   {
     timeStamps: true,
-  }
+  },
 );
-
 
 userSchema.pre("save", async function (next) {
   const user = this;
   if (user.isModified("password")) {
-    console.log("Password Before Hashing:", user.password);
+    // console.log("Password Before Hashing:", user.password);
     user.password = await bcrypt.hash(user.password, 10);
-    console.log("Password After Hashing:", user.password);
+    // console.log("Password After Hashing:", user.password);
   }
   next();
 });
@@ -92,9 +91,9 @@ userSchema.methods.validatePassword = async function (passwordInputByUser) {
 
   const isPasswordValid = await bcrypt.compare(
     passwordInputByUser,
-    passwordHash
+    passwordHash,
   );
-  console.log("Password Match Result:", isPasswordValid);
+  // console.log("Password Match Result:", isPasswordValid);
   return isPasswordValid;
 };
 module.exports = mongoose.model("User", userSchema);
