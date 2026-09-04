@@ -2,6 +2,7 @@ const { userAuth } = require("../middlewares/userAuth");
 const express = require("express");
 const ConnectionRequest = require("../models/connectionRequest");
 const user = require("../models/user");
+const sendEmail = require("../utils/sendEmail");
 
 const requestRouter = express.Router();
 requestRouter.post(
@@ -43,9 +44,11 @@ requestRouter.post(
         toUserId,
         status,
       });
-
       const data = await connectionRequest.save();
-
+      const emailRes = await sendEmail.run(
+        "A new friend request from " + req.user.firstName,
+        req.user.firstName + " is " + status + " in " + toUser.firstName,
+      );
       res.json({
         message: req.user.firstName + "is " + status + "in" + toUser.firstName,
         data,
@@ -53,7 +56,7 @@ requestRouter.post(
     } catch (error) {
       res.status(400).send("ERROR " + error.message);
     }
-  }
+  },
 );
 
 requestRouter.post(
@@ -79,12 +82,12 @@ requestRouter.post(
           .json({ message: "Connection request not found" });
       }
       connectionRequest.status = status;
-      const data = connectionRequest.save();
+      const data = await connectionRequest.save();
 
-      res.send({message:"Connection accepted",data})
+      res.send({ message: "Connection accepted", data });
     } catch (error) {
       res.status(400).send("ERROR " + error.message);
     }
-  }
+  },
 );
 module.exports = requestRouter;
