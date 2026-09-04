@@ -22,8 +22,8 @@ const connectionRequestSchema = new mongoose.Schema(
     },
   },
   {
-    timeStamps: true,
-  }
+    timestamps: true,
+  },
 );
 
 //indexing for optiomize search for databse
@@ -38,7 +38,7 @@ connectionRequestSchema.pre("save", function (next) {
 
 const ConnectionRequest = new mongoose.model(
   "ConnectionRequest",
-  connectionRequestSchema
+  connectionRequestSchema,
 );
 
 module.exports = ConnectionRequest;
