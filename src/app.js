@@ -6,9 +6,16 @@ const authRouter = require("./routers/auth");
 const profileRouter = require("./routers/profile");
 const requestRouter = require("./routers/request");
 const userRouter = require("./routers/user");
-const cors = require("cors");
+const initializeSocket = require("./utils/socket");
 require("./utils/cronjob");
+
+const cors = require("cors");
+const http = require("http");
+const chatRouter = require("./routers/chat");
 const app = express();
+const server = http.createServer(app);
+
+initializeSocket(server);
 
 app.use(
   cors({
@@ -23,11 +30,12 @@ app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
+app.use("/", chatRouter);
 
 connectDB()
   .then(() => {
     console.log("Database connected successfully");
-    app.listen(process.env.PORT, () => {
+    server.listen(process.env.PORT, () => {
       console.log("Server started successfully on port 7777.....");
     });
   })
