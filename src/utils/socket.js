@@ -18,6 +18,24 @@ const getTokenFromCookies = (cookieHeader = "") => {
     .find((cookie) => cookie.startsWith("token="));
   return tokenCookie ? decodeURIComponent(tokenCookie.slice("token=".length)) : null;
 };
+const onlineUserSockets = new Map();
+
+const presenceRoom = (userId) => `presence:${userId}`;
+
+const addOnlineSocket = (userId, socketId) => {
+  const sockets = onlineUserSockets.get(userId) || new Set();
+  sockets.add(socketId);
+  onlineUserSockets.set(userId, sockets);
+};
+
+const removeOnlineSocket = (userId, socketId) => {
+  const sockets = onlineUserSockets.get(userId);
+  if (!sockets) return false;
+  sockets.delete(socketId);
+  if (sockets.size > 0) return false;
+  onlineUserSockets.delete(userId);
+  return true;
+};
 
 const hasAcceptedConnection = (userId, targetUserId) =>
   ConnectionRequest.exists({
@@ -69,6 +87,13 @@ const initializeSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
+    const userId = socket.user._id.toString();
+    const wasOffline = !onlineUserSockets.has(userId);
+    addOnlineSocket(userId, socket.id);
+    if (wasOffline) {
+      io.to(presenceRoom(userId)).emit("presenceUpdate", { userId, isOnline: true });
+    }
+
     const getAuthorizedRoom = async (targetUserId) => {
       const isConnected = await hasAcceptedConnection(socket.user._id, targetUserId);
       if (!isConnected) throw new Error("You can only chat with accepted connections");
@@ -78,6 +103,11 @@ const initializeSocket = (server) => {
     socket.on("joinChat", async ({ targetUserId } = {}) => {
       try {
         socket.join(await getAuthorizedRoom(targetUserId));
+        socket.join(presenceRoom(targetUserId));
+        socket.emit("presenceStatus", {
+          userId: targetUserId,
+          isOnline: onlineUserSockets.has(targetUserId),
+        });
       } catch (error) {
         socket.emit("chatError", { message: error.message });
       }
@@ -108,6 +138,12 @@ const initializeSocket = (server) => {
         }
       },
     );
+
+    socket.on("disconnect", () => {
+      if (removeOnlineSocket(userId, socket.id)) {
+        io.to(presenceRoom(userId)).emit("presenceUpdate", { userId, isOnline: false });
+      }
+    });
   });
 };
 
