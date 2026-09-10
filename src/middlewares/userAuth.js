@@ -1,4 +1,3 @@
-const express = require("express");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
@@ -11,6 +10,9 @@ const userAuth = async (req, res, next) => {
       return res.status(401).send("Please login again");
     }
     //validate the token
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not configured");
+    }
     const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
 
     const { _id } = decodedObj;
@@ -25,7 +27,7 @@ const userAuth = async (req, res, next) => {
 
     next();
   } catch (error) {
-    res.status(400).send("ERROR " + error.message);
+    res.status(401).send("Please login again");
   }
 };
 module.exports = {

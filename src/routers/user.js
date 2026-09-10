@@ -1,12 +1,11 @@
 const express = require("express");
 const { userAuth } = require("../middlewares/userAuth");
 const ConnectionRequest = require("../models/connectionRequest");
-const authRouter = require("./auth");
 const User = require("../models/user");
 
 const userRouter = express.Router();
 
-const SAFE_USER_DATA = "firstName lastName photoUrl age about skill";
+const SAFE_USER_DATA = "firstName lastName photoUrl age about skills gender";
 
 userRouter.get("/user/requests/received", userAuth, async (req, res) => {
   try {
@@ -54,11 +53,14 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
   }
 });
 
-userRouter.get("/feed?", userAuth, async (req, res) => {
+userRouter.get("/feed", userAuth, async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
-   limit = limit>50 ? 50 :limit
+    const page = Number.parseInt(req.query.page, 10) || 1;
+    let limit = Number.parseInt(req.query.limit, 10) || 10;
+    if (page < 1 || limit < 1) {
+      return res.status(400).json({ message: "page and limit must be positive integers" });
+    }
+    limit = Math.min(limit, 50);
 
     const  skip=(page - 1) * limit
 

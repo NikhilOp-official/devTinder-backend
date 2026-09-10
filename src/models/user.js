@@ -28,6 +28,7 @@ const userSchema = mongoose.Schema(
     },
     password: {
       type: String,
+      select: false,
       validate(value) {
         if (!validator.isStrongPassword(value)) {
           throw new Error("Please Enter a strong password");
@@ -36,6 +37,7 @@ const userSchema = mongoose.Schema(
     },
     age: {
       type: Number,
+      min: 0,
     },
     gender: {
       type: String,
@@ -48,7 +50,7 @@ const userSchema = mongoose.Schema(
     photoUrl: {
       type: String,
       validate(value) {
-        if (!validator.isURL(value)) {
+        if (value && !validator.isURL(value)) {
           throw new Error("Entered url is not valid");
         }
       },
@@ -62,7 +64,13 @@ const userSchema = mongoose.Schema(
     },
   },
   {
-    timeStamps: true,
+    timestamps: true,
+    toJSON: {
+      transform: (_document, returnedObject) => {
+        delete returnedObject.password;
+        return returnedObject;
+      },
+    },
   },
 );
 
@@ -79,7 +87,11 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.getJWT = async function () {
   const user = this;
 
-  const token = await jwt.sign({ _id: user._id }, "nikhil", {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not configured");
+  }
+
+  const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
 

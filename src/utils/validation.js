@@ -2,12 +2,12 @@ const validator = require("validator");
 
 const validateSignUpData = (req) => {
   const { firstName, lastName, emailId, password } = req.body;
-  if (!firstName || !lastName) {
+  if (!firstName?.trim() || !lastName?.trim()) {
     throw new Error("Enter a valid name");
-  } else if (!validator.isEmail(emailId)) {
+  } else if (!validator.isEmail(emailId || "")) {
     throw new Error("Email is not valid");
-  } else if (!validator.isStrongPassword(password)) {
-    throw new Error("Please Eneter a strong password");
+  } else if (!validator.isStrongPassword(password || "")) {
+    throw new Error("Please enter a strong password");
   }
 };
 const validateEditProfileData = (req) => {

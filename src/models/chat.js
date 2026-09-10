@@ -11,6 +11,7 @@ const messagesSchema = new mongoose.Schema(
   { timestamps: true },
 );
 const chatSchema = new mongoose.Schema({
+  pairKey: { type: String, unique: true, sparse: true },
   participants: [
     { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   ],

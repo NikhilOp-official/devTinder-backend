@@ -4,13 +4,8 @@ const { sesClient } = require("./sesClient");
 const createSendEmailCommand = (toAddress, fromAddress, subject, body) => {
   return new SendEmailCommand({
     Destination: {
-      /* required */
-      CcAddresses: [
-        /* more items */
-      ],
       ToAddresses: [
         toAddress,
-        /* more To-email addresses */
       ],
     },
     Message: {
@@ -32,16 +27,17 @@ const createSendEmailCommand = (toAddress, fromAddress, subject, body) => {
       },
     },
     Source: fromAddress,
-    ReplyToAddresses: [
-      /* more items */
-    ],
   });
 };
 
-const run = async (subject, body) => {
+const run = async (toAddress, subject, body) => {
+  const fromAddress = process.env.SES_FROM_EMAIL;
+  if (!fromAddress) {
+    throw new Error("SES_FROM_EMAIL is not configured");
+  }
   const sendEmailCommand = createSendEmailCommand(
-    "nikhilchaurasia70@gmail.com",
-    "nikhilchaurasia70@gmail.com",
+    toAddress,
+    fromAddress,
     subject,
     body,
   );

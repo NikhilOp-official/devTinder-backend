@@ -20,6 +20,11 @@ const connectionRequestSchema = new mongoose.Schema(
         message: "{VALUE} is incorrect status type",
       },
     },
+    pairKey: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
   },
   {
     timestamps: true,
@@ -27,12 +32,17 @@ const connectionRequestSchema = new mongoose.Schema(
 );
 
 //indexing for optiomize search for databse
-connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 });
 connectionRequestSchema.pre("save", function (next) {
   const connectionRequest = this;
   if (connectionRequest.fromUserId.equals(connectionRequest.toUserId)) {
-    throw new Error("Cannot send request to yourself!");
+    return next(new Error("Cannot send request to yourself!"));
   }
+  connectionRequest.pairKey = [
+    connectionRequest.fromUserId.toString(),
+    connectionRequest.toUserId.toString(),
+  ]
+    .sort()
+    .join(":");
   next();
 });
 

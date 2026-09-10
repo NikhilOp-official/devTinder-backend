@@ -14,7 +14,7 @@ requestRouter.post(
       const toUserId = req.params.toUserId;
       const status = req.params.status;
 
-      const allowedStatus = ["interested", "ignored"];
+      const allowedStatus = ["interested", "ignore"];
       if (!allowedStatus.includes(status)) {
         return res
           .status(400)
@@ -22,7 +22,7 @@ requestRouter.post(
       }
       const toUser = await user.findById({ _id: toUserId });
       if (!toUser) {
-        res.status(404).send({ message: "user not found" });
+        return res.status(404).send({ message: "User not found" });
       }
       //if there is a existing connectionRequest
 
@@ -45,15 +45,20 @@ requestRouter.post(
         status,
       });
       const data = await connectionRequest.save();
-      const emailRes = await sendEmail.run(
-        "A new friend request from " + req.user.firstName,
-        req.user.firstName + " is " + status + " in " + toUser.firstName,
-      );
-      res.json({
-        message: req.user.firstName + "is " + status + "in" + toUser.firstName,
+      res.status(201).json({
+        message: `${req.user.firstName} is ${status} in ${toUser.firstName}`,
         data,
       });
+
+      void sendEmail.run(
+        toUser.emailId,
+        "A new friend request from " + req.user.firstName,
+        `${req.user.firstName} is ${status} in ${toUser.firstName}`,
+      ).catch((error) => console.error("Unable to send request email:", error.message));
     } catch (error) {
+      if (error.code === 11000) {
+        return res.status(409).send({ message: "Connection request already sent" });
+      }
       res.status(400).send("ERROR " + error.message);
     }
   },

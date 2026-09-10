@@ -20,7 +20,7 @@ initializeSocket(server);
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
   }),
 );
 app.use(express.json()); //this will be used as the  middleware which will convert all  the requested json data to javascript object
@@ -36,9 +36,9 @@ connectDB()
   .then(() => {
     console.log("Database connected successfully");
     server.listen(process.env.PORT, () => {
-      console.log("Server started successfully on port 7777.....");
+      console.log(`Server started successfully on port ${process.env.PORT}.....`);
     });
   })
-  .catch((e) => {
-    console.log("An error occured while connecting  to the databse");
+  .catch((error) => {
+    console.error("An error occurred while connecting to the database:", error.message);
   });

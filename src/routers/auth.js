@@ -26,6 +26,9 @@ authRouter.post("/signup", async (req, res) => {
     //add the token to cookie and send the response back to the user
 
     res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
       expires: new Date(Date.now() + 4 * 3600000),
     });
 
@@ -41,7 +44,9 @@ authRouter.post("/login", async (req, res) => {
   try {
     const { emailId, password } = req.body;
 
-    const user = await User.findOne({ emailId });
+    const user = await User.findOne({ emailId: emailId?.toLowerCase().trim() }).select(
+      "+password",
+    );
 
     if (!user) {
       throw new Error("User does not exist");
@@ -56,6 +61,9 @@ authRouter.post("/login", async (req, res) => {
         //add the token to cookie and send the response back to the user
 
         res.cookie("token", token, {
+          httpOnly: true,
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+          secure: process.env.NODE_ENV === "production",
           expires: new Date(Date.now() + 4 * 3600000),
         });
 
@@ -71,6 +79,9 @@ authRouter.post("/login", async (req, res) => {
 
 authRouter.post("/logout", async (req, res) => {
   res.cookie("token", null, {
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production",
     expires: new Date(Date.now()),
   });
 
